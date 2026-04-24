@@ -1,0 +1,42 @@
+name: Cloud Workspace Setup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Remote Workspace via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASS }}
+          script: |
+
+            echo "Updating system..."
+            sudo apt update -y && sudo apt upgrade -y
+
+            echo "Installing XFCE Desktop..."
+            sudo apt install xfce4 xfce4-goodies xrdp wget -y
+
+            echo "Enabling RDP..."
+            sudo systemctl enable xrdp
+            sudo systemctl restart xrdp
+
+            echo "Setting session..."
+            echo xfce4-session > ~/.xsession
+
+            echo "Installing Chrome..."
+            wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo apt install ./google-chrome-stable_current_amd64.deb -y
+
+            echo "Installing Tailscale..."
+            curl -fsSL https://tailscale.com/install.sh | sh
+
+            echo "Starting Tailscale..."
+            sudo tailscale up
+
+            echo "Workspace Ready 🚀"
